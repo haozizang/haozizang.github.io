@@ -16,7 +16,7 @@
 
 
 
-<title>Archives: 2022 | Hexo</title>
+<title>STL的内存管理 | Hexo</title>
 
 
 
@@ -74,109 +74,89 @@
 </header>
 
     <main class="container">
-      <div class="posts">
-  
-  <ul>
-    
-    
-    
-      <h2>2022</h2>
-    
-    <a href="/2022/07/29/NOTES/cpp/STL/STL%E7%9A%84%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/" class="item">
-      <li>
-        <div class="title">STL的内存管理</div>
-        <div class="time">2022-07-29 16:07</div>
-      </li>
-    </a>
-    
-    
-    
-    <a href="/2022/07/29/NOTES/cpp/%E7%BD%91%E7%BB%9C%E7%BC%96%E7%A8%8Bsocket/socket/" class="item">
-      <li>
-        <div class="title">socket</div>
-        <div class="time">2022-07-29 08:07</div>
-      </li>
-    </a>
-    
-    
-    
-    <a href="/2022/07/29/NOTES/cpp/%E7%BD%91%E7%BB%9C%E7%BC%96%E7%A8%8Bsocket/OSI%E6%A8%A1%E5%9E%8B/" class="item">
-      <li>
-        <div class="title">OSI模型</div>
-        <div class="time">2022-07-29 08:07</div>
-      </li>
-    </a>
-    
-    
-    
-    <a href="/2022/07/29/NOTES/cpp/%E7%BD%91%E7%BB%9C%E7%BC%96%E7%A8%8Bsocket/API%E8%A7%A3%E8%AF%BB/" class="item">
-      <li>
-        <div class="title">API解读</div>
-        <div class="time">2022-07-29 08:07</div>
-      </li>
-    </a>
-    
-    
-    
-    <a href="/2022/07/29/NOTES/cpp/linux/%E8%BF%9B%E7%A8%8B%E9%97%B4%E9%80%9A%E4%BF%A1/" class="item">
-      <li>
-        <div class="title">进程间通信</div>
-        <div class="time">2022-07-29 08:07</div>
-      </li>
-    </a>
-    
-    
-    
-    <a href="/2022/07/29/NOTES/cpp/linux/%E5%86%85%E5%AD%98%E6%B1%A0/" class="item">
-      <li>
-        <div class="title">内存池</div>
-        <div class="time">2022-07-29 08:07</div>
-      </li>
-    </a>
-    
-    
-    
-    <a href="/2022/07/28/NOTES/linux/%E5%86%85%E5%AD%98%E6%B1%A0/" class="item">
-      <li>
-        <div class="title">内存池</div>
-        <div class="time">2022-07-28 20:07</div>
-      </li>
-    </a>
-    
-    
-    
-    <a href="/2022/07/28/NOTES/inv/%E5%B8%82%E9%94%80%E7%8E%87-%E5%B8%82%E7%8E%B0%E7%8E%87/" class="item">
-      <li>
-        <div class="title">市销率-市现率</div>
-        <div class="time">2022-07-28 19:07</div>
-      </li>
-    </a>
-    
-    
-    
-    <a href="/2022/07/28/NOTES/linux/%E8%BF%9B%E7%A8%8B%E9%97%B4%E9%80%9A%E4%BF%A1/" class="item">
-      <li>
-        <div class="title">进程间通信</div>
-        <div class="time">2022-07-28 19:07</div>
-      </li>
-    </a>
-    
-    
-    
-    <a href="/2022/07/28/NOTES/infra/hexo/hexo_usage/" class="item">
-      <li>
-        <div class="title">hexo_usage</div>
-        <div class="time">2022-07-28 17:07</div>
-      </li>
-    </a>
-    
-  </ul>
-  
-  <nav class="pagination">
-      <span class="page-number current">1</span><a class="page-number" href="/archives/2022/page/2/">2</a><a class="page-number" href="/archives/2022/page/3/">3</a><span class="space">&hellip;</span><a class="page-number" href="/archives/2022/page/6/">6</a>
-  </nav>
+      
 
+<div class="post">
+  <div class="post-header">
+    <h1 class="post-title">STL的内存管理</h1>
+    <p class="post-meta">2022-07-29 16:46:21</p>
+  </div>
+  <div class="post-content">
+    <article>
+      <ul>
+<li><p>STL组成</p>
+<ul>
+<li>容器</li>
+<li>迭代器</li>
+<li>算法</li>
+<li>仿函数: 模板</li>
+</ul>
+</li>
+<li><p>SGI STL 内存分配</p>
+<ul>
+<li><code>&lt;= 128bytes</code>: 由内存池管理(第2级空间配置器)<ul>
+<li>原理<ul>
+<li>结构: 多个 16个元素的链表, 第 i 个元素指向一个均匀分割为 (8 * i)bytes 的<strong>内存块</strong>(start_free&#x2F;end_free等标记下一个空闲位置)</li>
+<li>分配: 若某个单位大小内存卡耗尽, blockAlloc新开一串node(默认20个, 此处顺序也是内存池-&gt;OS-&gt;若OS分配内存失败, 循环各个链表查找空间)</li>
+<li>释放: 若释放内存&gt;128, 则直接free, 否则加入相应的自由链表中</li>
+</ul>
+</li>
+<li>对内存的管理减少了小区块造成的内存碎片</li>
+</ul>
+</li>
+<li><code>&gt; 128bytes</code>: malloc&#x2F;free(第1级空间配置器)<ul>
+<li>若分配内存失败, 重复以下操作直到成功: { 调用 oommalloc, 企图释放内存, 然后重新调用 malloc }</li>
+</ul>
+</li>
+</ul>
+</li>
+<li><p>内存池</p>
+<ul>
+<li>特点<ul>
+<li>刚开始初始化内存池的时候, 其实内存池中并没有内存, 同时所有的自由链表都为空链表.</li>
+<li>只有用户第一次向内存池请求内存时, 内存池会依次执行上述过程的 1-&gt;2-&gt;b-&gt;z来完成内存池以及链表的首次填充, 而此时, 其他未使用链表仍然是空的.</li>
+<li>所有已经分配的内存在内存池中没有任何记录, 释放与否完全靠程序员自觉.</li>
+<li>释放内存时, 如果大于128bytes, 则直接free, 否则加入相应的自由链表中而不是直接返还给操作系统.</li>
+</ul>
+</li>
+<li>解决的问题<ul>
+<li>内存碎片: 频繁分配、释放小块内存容易在堆中造成外碎片(极端情况 下就是堆中空闲的内存总量满足一个请求，但是这些空闲的块都不连续，导致任何一个单独 的空闲的块都无法满足这个请求)</li>
+<li>频繁请求性能查</li>
+</ul>
+</li>
+</ul>
+</li>
+<li><p>内存对齐</p>
+<ul>
+<li>为了高效读数据(类比struct对齐)</li>
+<li></li>
+</ul>
+</li>
+</ul>
 
+    </article>
+  </div>
+  <div class="post-footer">
+    <a href="javascript:window.history.back();">
+      cd ..
+    </a>
+    <br>
+    <a href="/">
+      cd /
+    </a>
+  </div>
+  <div class="post-license">
+    <span>
+      <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank" style="color: inherit;">
+        CC BY-NC-SA 4.0
+      </a>
+      2021-PRESENT © John Doe
+    </span>
+    <div></div>
+  </div>
+  <div class="post-comment">
+    <div id="disqusjs"></div>
+  </div>
 </div>
 
     </main>
