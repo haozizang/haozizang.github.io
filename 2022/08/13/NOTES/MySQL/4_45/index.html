@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+
+
+
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+<meta http-equiv="X-UA-Compatible" content="ie=edge">
+
+  <meta name="author" content="John Doe">
+
+
+
+
+
+<title>445 | Hexo</title>
+
+
+
+    <link rel="icon" href="/favicon.png">
+
+
+
+<link rel="stylesheet" href="/css/style.css">
+
+
+<link rel="stylesheet" href="/lib/tocbot/tocbot.css">
+
+
+<link rel="stylesheet" href="/lib/fancybox/fancybox.min.css">
+
+
+
+
+
+
+<meta name="generator" content="Hexo 6.2.0"></head>
+<body>
+  <div id="app">
+    <header class="header">
+  <a href="/" class="logo" focusable="false">
+    <img src="/images/logo.svg" alt="Hexo" />
+  </a>
+  <nav class="nav">
+    <div class="spacer"></div>
+    <div class="right">
+      <div class="menu">
+        
+          <a class="item" href="/archives">Posts</a>
+          
+          <a class="item" href="/categories">Categories</a>
+          
+          <a class="item" href="/tags">Tags</a>
+          
+      </div>
+      <div class="links">
+        
+          
+            <a title="Github" target="_blank" rel="noopener" href="https://github.com/xbmlz" class="link-item">
+              <span class="iconify" data-icon="ri:github-line"></span>
+            </a>
+          
+        
+      </div>
+      <a class="toggleDark" id="dark-mode">
+        <span class="iconify" data-icon="ri:sun-line" id="sun-icon" style="display: none"></span>
+        <span class="iconify" data-icon="ri:moon-line" id="moon-icon" style="display: none"></span>
+      </a>
+    </div>
+  </nav>
+</header>
+
+    <main class="container">
+      
+
+  <div class="post-toc">
+  <div class="tocbot-list">
+  </div>
+  <div class="tocbot-list-menu">
+    <a class="tocbot-toc-expand" onclick="expand_toc()">Expand all</a>
+    <a onclick="go_top()">Back to top</a>
+    <a onclick="go_bottom()">Go to bottom</a>
+  </div>
+</div>
+
+
+
+<div class="post">
+  <div class="post-header">
+    <h1 class="post-title">445</h1>
+    <p class="post-meta">2022-08-13 10:01:59</p>
+  </div>
+  <div class="post-content">
+    <article>
+      <h3 id="索引类型"><a href="#索引类型" class="headerlink" title="索引类型"></a>索引类型</h3><ul>
+<li>哈希<ul>
+<li>查询<ul>
+<li>缺点: 范围查询需要遍历(因为存储不是有序的)</li>
+<li>用于等值查询</li>
+</ul>
+</li>
+<li>插入<ul>
+<li>冲突处理: 冲突的值组成链表</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>有序数组<ul>
+<li>查询较出色<ul>
+<li>等值查询: 二分法</li>
+<li>范围查询: 二分法找到min, 遍历到max</li>
+</ul>
+</li>
+<li>插入<ul>
+<li>中间插入需要移动, 成本高</li>
+<li>因此用于静态存储引擎</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>搜索树<ul>
+<li>设计<ul>
+<li>多叉树-&gt; 降低层数<ul>
+<li>每个节点对应一个磁盘数据块, 节点跳跃多的话则读磁盘多, 寻址费时</li>
+<li>eg. innoDB 大约是 1200 叉树, 树高4, 则存 1200^3 个值.树根在内存中, 第二层也很可能在内存中, 访问磁盘次数很少</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>其他结构<ul>
+<li>调表</li>
+<li>LSM树</li>
+</ul>
+</li>
+</ul>
+<h3 id="InnoDB索引模型"><a href="#InnoDB索引模型" class="headerlink" title="InnoDB索引模型"></a>InnoDB索引模型</h3><ul>
+<li>索引组织表: 表按照PK顺序以索引形式存放<ul>
+<li>每一个索引在 InnoDB对应一棵B+树</li>
+</ul>
+</li>
+<li>可以多索引(PK &#x2F; 非PK)<ul>
+<li>主键索引(聚簇索引 clustered index): 叶子节点存整行数据</li>
+<li>非主键索引(二级索引 secondary index): 叶子节点存PK!<ul>
+<li>基于非主键索引的搜索需要 再次搜索PK的树</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<h3 id="索引维护"><a href="#索引维护" class="headerlink" title="索引维护"></a>索引维护</h3><ul>
+<li>插入新行可能场景<ul>
+<li>直接插入</li>
+<li>插入并将其后数据向后挪动, 叶子节点分裂</li>
+<li>数据页满-&gt; 页分裂: 申请新的页, 将部分数据移动过去<ul>
+<li>开销大, 并且影响页的利用率</li>
+<li>页合并: 利用率低的页合并的过程</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<h3 id="自增字段做索引-VS-自定义的字段做索引"><a href="#自增字段做索引-VS-自定义的字段做索引" class="headerlink" title="自增字段做索引 VS 自定义的字段做索引"></a>自增字段做索引 VS 自定义的字段做索引</h3><ul>
+<li>效率<ul>
+<li>PK自增型: 追加操作, 不会移动其他记录, 叶子节点不会分裂</li>
+<li>自定义PK: 维持自增有序难, 插入开销大</li>
+</ul>
+</li>
+<li>存储<ul>
+<li><strong>考虑二级索引的叶子节点为PK的值, PK越小越好!</strong><ul>
+<li>自增型PK: 4字节(INT) &#x2F; 8字节(BIGINT)</li>
+<li>自定义PK: eg. 身份证字符串 -&gt; 20 个字节</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>使用业务字段作PK?<ul>
+<li>唯一索引, 无二级索引(KV场景)</li>
+</ul>
+</li>
+</ul>
+<h3 id="重建索引"><a href="#重建索引" class="headerlink" title="重建索引"></a>重建索引</h3><ul>
+<li>why<ul>
+<li>索引被删除, 或页分裂等原因导致的数据页空洞, 重建索引会提高页面利用率, 让索引更紧凑</li>
+</ul>
+</li>
+<li>重建PK? 无意义! 因为 删除&#x2F;创建主键都会将整个表重建  <figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"># 不合理, 这两条命令都会重建整个表</span><br><span class="line"><span class="keyword">alter</span> <span class="keyword">table</span> T <span class="keyword">drop</span> <span class="keyword">primary</span> key;</span><br><span class="line"><span class="keyword">alter</span> <span class="keyword">table</span> T <span class="keyword">add</span> <span class="keyword">primary</span> key(id);</span><br><span class="line"># 替换为:</span><br><span class="line"><span class="keyword">alter</span> <span class="keyword">table</span> T engine<span class="operator">=</span>InnoDB;</span><br></pre></td></tr></table></figure></li>
+<li>secondary index  <figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">alter</span> <span class="keyword">table</span> <span class="keyword">drop</span> index k;</span><br><span class="line"><span class="keyword">alter</span> <span class="keyword">table</span> <span class="keyword">add</span> index(k);</span><br></pre></td></tr></table></figure></li>
+</ul>
+<h3 id="回表"><a href="#回表" class="headerlink" title="回表"></a>回表</h3><ul>
+<li>从二级索引树找到主键索引, 然后回到主键索引树的过程</li>
+<li>避免回表<ul>
+<li>覆盖索引<ul>
+<li><code>select * from T where k between 3 and 5;</code> -&gt; <code>select ID from T where k between 3 and 5;</code><ul>
+<li>此例中因为 k 的叶子节点存储的就是PK(ID)的值, 不需回表</li>
+</ul>
+</li>
+<li>通过冗余索引(联合索引)达成覆盖 -&gt; eg. 建立 <code>(身份证号, 名字)</code> 的联合索引, 根据身份证号 查找姓名时可避免回表</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<h3 id="最左前缀"><a href="#最左前缀" class="headerlink" title="最左前缀"></a>最左前缀</h3><ul>
+<li>联合索引的左边部分, 可以加速相应的检索<ul>
+<li>左边N个字段</li>
+<li>字符串左边M个字符</li>
+</ul>
+</li>
+<li>联合索引 (a, b), 则不需要创建 a 的索引<ul>
+<li>对比 (name, age) + age | (age, name) + name<ul>
+<li>考虑使用频率(name查的多)</li>
+<li>考虑空间(name大)</li>
+<li><code>select * from user where name like &#39;张%&#39; and age=10 and ismale=1;</code></li>
+<li><strong>索引下推</strong>优化(上面cmd中age会直接在联合索引(name, age)中过滤掉不满足的)</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+    </article>
+  </div>
+  <div class="post-footer">
+    <a href="javascript:window.history.back();">
+      cd ..
+    </a>
+    <br>
+    <a href="/">
+      cd /
+    </a>
+  </div>
+  <div class="post-license">
+    <span>
+      <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank" style="color: inherit;">
+        CC BY-NC-SA 4.0
+      </a>
+      2021-PRESENT © John Doe
+    </span>
+    <div></div>
+  </div>
+  <div class="post-comment">
+    <div id="disqusjs"></div>
+  </div>
+</div>
+
+    </main>
+    <footer class="footer">
+  <div class="copyright">
+    <span>Powered by <a href="https://hexo.io" target="_blank">Hexo</a> & <a href="https://github.com/xbmlz/hexo-theme-maple" target="_blank">Maple</a></span>
+  </div>
+</footer>
+
+  </div>
+  <script>
+  (function() {
+    const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches
+    const setting = localStorage.getItem('hexo-color-scheme') || 'auto'
+    if (setting === 'dark' || (prefersDark && setting !== 'light'))
+      document.documentElement.classList.toggle('dark', true)
+  })()
+</script>
+
+
+<script src="/js/jquery-3.4.1.min.js"></script>
+
+
+<script src="/js/index.js"></script>
+
+
+
+<script src="/js/iconify.min.js"></script>
+
+
+<script>
+  window.onload = () => {
+    let media = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)')
+    let isDark = () => {
+      const setting = localStorage.getItem('hexo-color-scheme') || 'auto'
+      if (setting === 'dark' || (media.matches && setting !== 'light')) {
+        return true
+      } else{
+        return false
+      }
+    }
+    // 切换为深色模式
+    let toggleDarkMode = () => {
+      document.documentElement.classList.toggle('dark', true)
+      document.getElementById('moon-icon').style.display = 'block'
+      document.getElementById('sun-icon').style.display = 'none'
+      setDarkMode('dark')
+    }
+    // 切换为浅色模式
+    let toggleLightMode = () => {
+      document.documentElement.classList.toggle('dark', false)
+      document.getElementById('moon-icon').style.display = 'none'
+      document.getElementById('sun-icon').style.display = 'block'
+      setDarkMode('light')
+    }
+    let setDarkMode = (scheme) => {
+      const darkMode = media.matches ? 'dark' : 'light'
+      if (darkMode !== scheme) {
+        localStorage.setItem('hexo-color-scheme', scheme)
+      } else{
+        localStorage.setItem('hexo-color-scheme', 'auto')
+      }
+    }
+    // 切换为自动模式
+    let updateMode = (e) => {
+      const setting = localStorage.getItem('hexo-color-scheme') || 'auto'
+      console.log(setting, e.matches)
+      if (setting === 'auto') {
+        if (e.matches) {
+          toggleDarkMode()
+        } else {
+          toggleLightMode()
+        }
+      }
+    }
+
+    // let media = getMedia()
+    if (typeof media.addEventListener === 'function') {
+      media.addEventListener('change', updateMode)
+    } else if (typeof media.addListener === 'function') {
+      media.addListener(updateMode)
+    }
+
+    if (isDark()) {
+      document.getElementById('moon-icon').style.display = 'block'
+    } else {
+      document.getElementById('sun-icon').style.display = 'block'
+    }
+
+    document.getElementById('moon-icon').addEventListener('click', () => {
+      toggleLightMode()
+    })
+    document.getElementById('sun-icon').addEventListener('click', () => {
+      toggleDarkMode()
+    })
+  }
+</script>
+
+
+
+<script src="/lib/tocbot/tocbot.min.js"></script>
+
+<script>
+  var tocbot_timer;
+  var DEPTH_MAX = 6; // 为 6 时展开所有
+  var tocbot_default_config = {
+    tocSelector: '.tocbot-list',
+    contentSelector: '.post-content',
+    headingSelector: 'h1, h2, h3, h4, h5',
+    orderedList: false,
+    scrollSmooth: true,
+    onClick: extend_click,
+  };
+  function extend_click() {
+    clearTimeout(tocbot_timer);
+    tocbot_timer = setTimeout(function () {
+      tocbot.refresh(obj_merge(tocbot_default_config, {
+        hasInnerContainers: true
+      }));
+    }, 420); // 这个值是由 tocbot 源码里定义的 scrollSmoothDuration 得来的
+  }
+  function expand_toc() {
+    var b = document.querySelector('.tocbot-toc-expand');
+    var expanded = b.getAttribute('data-expanded');
+    expanded ? b.removeAttribute('data-expanded') : b.setAttribute('data-expanded', true);
+    tocbot.refresh(obj_merge(tocbot_default_config, {
+      collapseDepth: expanded ? 1 : DEPTH_MAX
+    }));
+    b.innerText = expanded ? 'Expand all' : 'Collapse all';
+  }
+  function go_top() {
+    window.scrollTo(0, 0);
+  }
+  function go_bottom() {
+    window.scrollTo(0, document.body.scrollHeight);
+  }
+  function obj_merge(target, source) {
+    for (var item in source) {
+      if (source.hasOwnProperty(item)) {
+        target[item] = source[item];
+      }
+    }
+    return target;
+  }
+  $(document).ready(() => {
+    tocbot.init(obj_merge(tocbot_default_config, {
+      collapseDepth: 1
+    }));
+  });
+</script>
+
+
+
+
+
+
+<script async src="https://cdn.jsdelivr.net/npm/mathjax@2/MathJax.js?config=TeX-MML-AM_CHTML"></script>
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+    "HTML-CSS": {
+        preferredFont: "TeX",
+        availableFonts: ["STIX","TeX"],
+        linebreaks: { automatic:true },
+        EqnChunk: (MathJax.Hub.Browser.isMobile ? 10 : 50)
+    },
+    tex2jax: {
+        inlineMath: [ ["$", "$"], ["\\(","\\)"] ],
+        processEscapes: true,
+        ignoreClass: "tex2jax_ignore|dno",
+        skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+    },
+    TeX: {
+        equationNumbers: { autoNumber: "AMS" },
+        noUndefined: { attributes: { mathcolor: "red", mathbackground: "#FFEEEE", mathsize: "90%" } },
+        Macros: { href: "{}" }
+    },
+    messageStyle: "none"
+  });
+</script>
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Queue(function() {
+      var all = MathJax.Hub.getAllJax(), i;
+      for (i=0; i < all.length; i += 1) {
+          all[i].SourceElement().parentNode.className += ' has-jax';
+      }
+  });
+</script>
+
+
+
+
+<script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
+<script>
+  $(document).ready(() => {
+    const maraidConfig = {
+      theme: "dark",
+      logLevel: 3,
+      flowchart: { curve: "linear" },
+      gantt: { axisFormat: "%m/%d/%Y" },
+      sequence: { actorMargin: 50 },
+    };
+    mermaid.initialize(maraidConfig);
+  });
+</script>
+
+
+
+
+<script src="/lib/fancybox/fancybox.umd.js"></script>
+
+<script>
+  $(document).ready(() => {
+    $('.post-content').each(function(i){
+      $(this).find('img').each(function(){
+        if ($(this).parent().hasClass('fancybox') || $(this).parent().is('a')) return;
+        var alt = this.alt;
+        if (alt) $(this).after('<span class="fancybox-alt">' + alt + '</span>');
+        $(this).wrap('<a class="fancybox-img" href="' + this.src + '" data-fancybox=\"gallery\" data-caption="' + alt + '"></a>')
+      });
+      $(this).find('.fancybox').each(function(){
+        $(this).attr('rel', 'article' + i);
+      });
+    });
+
+    Fancybox.bind('[data-fancybox="gallery"]', {
+        // options
+    })
+  })
+</script>
+
+
+
+</body>
+
+</html>

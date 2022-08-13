@@ -76,18 +76,6 @@
     <main class="container">
       
 
-  <div class="post-toc">
-  <div class="tocbot-list">
-  </div>
-  <div class="tocbot-list-menu">
-    <a class="tocbot-toc-expand" onclick="expand_toc()">Expand all</a>
-    <a onclick="go_top()">Back to top</a>
-    <a onclick="go_bottom()">Go to bottom</a>
-  </div>
-</div>
-
-
-
 <div class="post">
   <div class="post-header">
     <h1 class="post-title">ptr运算</h1>
@@ -95,8 +83,13 @@
   </div>
   <div class="post-content">
     <article>
-      <h1 id=""><a href="#" class="headerlink" title=""></a></h1><p>“””<br>unsigned char *p1;<br>unsigned long *p2;<br>p1 &#x3D; (unsigned char *)0x801000;<br>p2 &#x3D; (unsigned long *)0x810000;<br>“””</p>
-<p>ans<br>p1+5&#x3D;p1+5<em>1&#x3D;p1+5</em>sizeof(unsigned char)&#x3D;p1+5<em>1&#x3D;0x801000+ox5&#x3D;0x801005<br>p2+5&#x3D;p2+5</em>1&#x3D;p2+5<em>sizeof(unsigned long)&#x3D;p1+5</em>4&#x3D;0x810000+20&#x3D;0x810000+0x14&#x3D;0x810014 </p>
+      <ul>
+<li><p>加法 -&gt; 内存层面的移动</p>
+  <figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">unsigned</span> <span class="type">char</span> *p1;</span><br><span class="line">unigned <span class="type">long</span> *p2;</span><br><span class="line">p1 = (<span class="type">unsigned</span> <span class="type">char</span> *)<span class="number">0x801000</span>;</span><br><span class="line">p2= (<span class="type">unsigned</span> <span class="type">long</span> *)<span class="number">0x810000</span>;</span><br><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment">ans</span></span><br><span class="line"><span class="comment">1+5=p1+5*1=p1+5*sizeof(unsigned char)=p1+5*1=0x801000+ox5=0x801005 </span></span><br><span class="line"><span class="comment">p2+5=p2+5*1=p2+5*sizeof(unsigned long)=p1+5*4=0x810000+20=0x810000+0x14=0x810014 </span></span><br><span class="line"><span class="comment">*/</span></span><br></pre></td></tr></table></figure>
+</li>
+<li><p>赋值</p>
+  <figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 1st</span></span><br><span class="line"><span class="type">int</span> i = <span class="number">3</span>;</span><br><span class="line"><span class="type">int</span>* p = &amp;i;</span><br><span class="line">p = &amp;i;</span><br><span class="line"><span class="comment">// 2nd</span></span><br><span class="line">* p = i;</span><br></pre></td></tr></table></figure></li>
+</ul>
 
     </article>
   </div>

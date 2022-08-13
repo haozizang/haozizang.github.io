@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+
+
+
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+<meta http-equiv="X-UA-Compatible" content="ie=edge">
+
+  <meta name="author" content="John Doe">
+
+
+
+
+
+<title>三次握手_四次挥手 | Hexo</title>
+
+
+
+    <link rel="icon" href="/favicon.png">
+
+
+
+<link rel="stylesheet" href="/css/style.css">
+
+
+<link rel="stylesheet" href="/lib/tocbot/tocbot.css">
+
+
+<link rel="stylesheet" href="/lib/fancybox/fancybox.min.css">
+
+
+
+
+
+
+<meta name="generator" content="Hexo 6.2.0"></head>
+<body>
+  <div id="app">
+    <header class="header">
+  <a href="/" class="logo" focusable="false">
+    <img src="/images/logo.svg" alt="Hexo" />
+  </a>
+  <nav class="nav">
+    <div class="spacer"></div>
+    <div class="right">
+      <div class="menu">
+        
+          <a class="item" href="/archives">Posts</a>
+          
+          <a class="item" href="/categories">Categories</a>
+          
+          <a class="item" href="/tags">Tags</a>
+          
+      </div>
+      <div class="links">
+        
+          
+            <a title="Github" target="_blank" rel="noopener" href="https://github.com/xbmlz" class="link-item">
+              <span class="iconify" data-icon="ri:github-line"></span>
+            </a>
+          
+        
+      </div>
+      <a class="toggleDark" id="dark-mode">
+        <span class="iconify" data-icon="ri:sun-line" id="sun-icon" style="display: none"></span>
+        <span class="iconify" data-icon="ri:moon-line" id="moon-icon" style="display: none"></span>
+      </a>
+    </div>
+  </nav>
+</header>
+
+    <main class="container">
+      
+
+<div class="post">
+  <div class="post-header">
+    <h1 class="post-title">三次握手_四次挥手</h1>
+    <p class="post-meta">2022-08-13 10:02:00</p>
+  </div>
+  <div class="post-content">
+    <article>
+      <ul>
+<li><p>三次握手</p>
+<ul>
+<li><p>三次握手是为了建立正确稳定的连接，由客户端发起连接请求，tcp头部控制位SYN&#x3D;1,表示这是一个连接请求，随机生成一个序号seq &#x3D; x，请求发送后，客户端切换为SYN_SENT状态，服务器是侦听状态，侦听到这个请求后，先校验是不是发给自己的，如果是，就返回一个确认，确认号ACK &#x3D; seq + 1,表示自己的接受位置，随机生成一个序号seq &#x3D; y,发送后服务器变为SYN_REC状态，客户端接收到服务器返回的信息确认无误后，返回一个确认ACK &#x3D; y +1，表示自己接收到了服务器的返回信息，客户端切换为CONNECTED状态，服务器接收到后，连接正式建立。 三次握手简单说就是，双发都要确认自己以及对方的收发功能，第一次接收方知道自己可以成功接受，发送方可以成功发送，第二次发送方知道自己发送成功，接收方可以成功接受，接收方有发送能力，最后一次接收方知道发送发有接受能力，自己发送能力没问题，所以可靠连接可以建立</p>
+</li>
+<li><p>过程:</p>
+<ol>
+<li>C –(SYN&#x3D;1, seq&#x3D;x)–&gt; S<ul>
+<li>C(SYN_SENT)</li>
+</ul>
+</li>
+<li>C &lt;–(ACK&#x3D;x+1, seq&#x3D;y)– S<ul>
+<li>S(SYN_REC)</li>
+</ul>
+</li>
+<li>C –(ACK&#x3D;y+1)–&gt; S<ul>
+<li>C(CONNECTED)</li>
+</ul>
+</li>
+</ol>
+</li>
+</ul>
+</li>
+<li><p>四次挥手</p>
+<ul>
+<li><p>四次挥手也类似，控制位变成FIN&#x3D;1,表示这是一个断开连接的请求，双方都可以发起断开连接的请求，这里以客户端发起请求为例，FIN &#x3D; 1,seq &#x3D; x;发送后客户端切换为fin_wait1状态，服务器接受后，返回确认ACK &#x3D; x +1,seq &#x3D; y,表示自己接收到了客户端的请求，客户端可以断开，发送后服务器切换为close_wait状态，客户端接收后，确认自己可以断开，切换为FIN_WAIT2状态，半连接状态，表示自己只能收，不能发，等一会后，服务器传完了自己的所有信息，就向客户端发一条断开请求，FIN&#x3D;1，ACK &#x3D; x+1，seq &#x3D; z,还是close_wait状态，客户端接收到之后，返回一个确认信息，FIN &#x3D;1,ACK &#x3D; z + 1，进入TIME_wait状态，服务器接收到后，关闭发送接收功能，客户端等待2MSL时间后，断开连接。 为什么是四次挥手，不能让服务器传信息同时返回确认吗？TCP是有超时重传机制的，这个时间一般比较短，如果等服务器把自己的传完了，估计客户端得重发很多个 为什么等待2MSL时间，因为客户端不确定是否服务端收到了自己的确认，如果服务端没收到，会再次重传，如果客户端已经关闭，就找不到客户端了，MSL，Maximum Segment Lifetime，最大报文段生存时间。即任何TCP报文在网络中存在的最大时长，如果超过这个时间，这个TCP报文就会被丢弃。 2MSL，即两个最大报文段生存时间。 TIME_WAIT状态为什么是2MSL的时长？因为客户端不知道服务端是否能收到ACK应答数据包，服务端如果没有收到ACK，会进行重传FIN，考虑最坏的一种情况：第四次挥手的ACK包的最大生存时长(MSL)+服务端重传的FIN包的最大生存时长(MSL)&#x3D;2MSL</p>
+</li>
+<li><p>过程(双方都可发起断开的请求)</p>
+<ol>
+<li>C –(FIN&#x3D;1, seq&#x3D;x)–&gt; S<ul>
+<li>C(fin_wait1)</li>
+</ul>
+</li>
+<li>C &lt;–(ACK&#x3D;x+1, seq&#x3D;y)– S<ul>
+<li>C(fin_wait2)</li>
+</ul>
+</li>
+<li>C &lt;–(FIN&#x3D;1, ACK&#x3D;x+1, seq&#x3D;z)– S<ul>
+<li>S(close_wait)</li>
+</ul>
+</li>
+<li>C –(FIN&#x3D;1, ack&#x3D;z+1)–&gt; S<ul>
+<li>S(close)</li>
+<li>C(wait 2MSL before shutdown)<ul>
+<li>MSL: maximum segment lifetime</li>
+</ul>
+</li>
+</ul>
+</li>
+</ol>
+</li>
+</ul>
+</li>
+</ul>
+
+    </article>
+  </div>
+  <div class="post-footer">
+    <a href="javascript:window.history.back();">
+      cd ..
+    </a>
+    <br>
+    <a href="/">
+      cd /
+    </a>
+  </div>
+  <div class="post-license">
+    <span>
+      <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank" style="color: inherit;">
+        CC BY-NC-SA 4.0
+      </a>
+      2021-PRESENT © John Doe
+    </span>
+    <div></div>
+  </div>
+  <div class="post-comment">
+    <div id="disqusjs"></div>
+  </div>
+</div>
+
+    </main>
+    <footer class="footer">
+  <div class="copyright">
+    <span>Powered by <a href="https://hexo.io" target="_blank">Hexo</a> & <a href="https://github.com/xbmlz/hexo-theme-maple" target="_blank">Maple</a></span>
+  </div>
+</footer>
+
+  </div>
+  <script>
+  (function() {
+    const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches
+    const setting = localStorage.getItem('hexo-color-scheme') || 'auto'
+    if (setting === 'dark' || (prefersDark && setting !== 'light'))
+      document.documentElement.classList.toggle('dark', true)
+  })()
+</script>
+
+
+<script src="/js/jquery-3.4.1.min.js"></script>
+
+
+<script src="/js/index.js"></script>
+
+
+
+<script src="/js/iconify.min.js"></script>
+
+
+<script>
+  window.onload = () => {
+    let media = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)')
+    let isDark = () => {
+      const setting = localStorage.getItem('hexo-color-scheme') || 'auto'
+      if (setting === 'dark' || (media.matches && setting !== 'light')) {
+        return true
+      } else{
+        return false
+      }
+    }
+    // 切换为深色模式
+    let toggleDarkMode = () => {
+      document.documentElement.classList.toggle('dark', true)
+      document.getElementById('moon-icon').style.display = 'block'
+      document.getElementById('sun-icon').style.display = 'none'
+      setDarkMode('dark')
+    }
+    // 切换为浅色模式
+    let toggleLightMode = () => {
+      document.documentElement.classList.toggle('dark', false)
+      document.getElementById('moon-icon').style.display = 'none'
+      document.getElementById('sun-icon').style.display = 'block'
+      setDarkMode('light')
+    }
+    let setDarkMode = (scheme) => {
+      const darkMode = media.matches ? 'dark' : 'light'
+      if (darkMode !== scheme) {
+        localStorage.setItem('hexo-color-scheme', scheme)
+      } else{
+        localStorage.setItem('hexo-color-scheme', 'auto')
+      }
+    }
+    // 切换为自动模式
+    let updateMode = (e) => {
+      const setting = localStorage.getItem('hexo-color-scheme') || 'auto'
+      console.log(setting, e.matches)
+      if (setting === 'auto') {
+        if (e.matches) {
+          toggleDarkMode()
+        } else {
+          toggleLightMode()
+        }
+      }
+    }
+
+    // let media = getMedia()
+    if (typeof media.addEventListener === 'function') {
+      media.addEventListener('change', updateMode)
+    } else if (typeof media.addListener === 'function') {
+      media.addListener(updateMode)
+    }
+
+    if (isDark()) {
+      document.getElementById('moon-icon').style.display = 'block'
+    } else {
+      document.getElementById('sun-icon').style.display = 'block'
+    }
+
+    document.getElementById('moon-icon').addEventListener('click', () => {
+      toggleLightMode()
+    })
+    document.getElementById('sun-icon').addEventListener('click', () => {
+      toggleDarkMode()
+    })
+  }
+</script>
+
+
+
+<script src="/lib/tocbot/tocbot.min.js"></script>
+
+<script>
+  var tocbot_timer;
+  var DEPTH_MAX = 6; // 为 6 时展开所有
+  var tocbot_default_config = {
+    tocSelector: '.tocbot-list',
+    contentSelector: '.post-content',
+    headingSelector: 'h1, h2, h3, h4, h5',
+    orderedList: false,
+    scrollSmooth: true,
+    onClick: extend_click,
+  };
+  function extend_click() {
+    clearTimeout(tocbot_timer);
+    tocbot_timer = setTimeout(function () {
+      tocbot.refresh(obj_merge(tocbot_default_config, {
+        hasInnerContainers: true
+      }));
+    }, 420); // 这个值是由 tocbot 源码里定义的 scrollSmoothDuration 得来的
+  }
+  function expand_toc() {
+    var b = document.querySelector('.tocbot-toc-expand');
+    var expanded = b.getAttribute('data-expanded');
+    expanded ? b.removeAttribute('data-expanded') : b.setAttribute('data-expanded', true);
+    tocbot.refresh(obj_merge(tocbot_default_config, {
+      collapseDepth: expanded ? 1 : DEPTH_MAX
+    }));
+    b.innerText = expanded ? 'Expand all' : 'Collapse all';
+  }
+  function go_top() {
+    window.scrollTo(0, 0);
+  }
+  function go_bottom() {
+    window.scrollTo(0, document.body.scrollHeight);
+  }
+  function obj_merge(target, source) {
+    for (var item in source) {
+      if (source.hasOwnProperty(item)) {
+        target[item] = source[item];
+      }
+    }
+    return target;
+  }
+  $(document).ready(() => {
+    tocbot.init(obj_merge(tocbot_default_config, {
+      collapseDepth: 1
+    }));
+  });
+</script>
+
+
+
+
+
+
+<script async src="https://cdn.jsdelivr.net/npm/mathjax@2/MathJax.js?config=TeX-MML-AM_CHTML"></script>
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+    "HTML-CSS": {
+        preferredFont: "TeX",
+        availableFonts: ["STIX","TeX"],
+        linebreaks: { automatic:true },
+        EqnChunk: (MathJax.Hub.Browser.isMobile ? 10 : 50)
+    },
+    tex2jax: {
+        inlineMath: [ ["$", "$"], ["\\(","\\)"] ],
+        processEscapes: true,
+        ignoreClass: "tex2jax_ignore|dno",
+        skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+    },
+    TeX: {
+        equationNumbers: { autoNumber: "AMS" },
+        noUndefined: { attributes: { mathcolor: "red", mathbackground: "#FFEEEE", mathsize: "90%" } },
+        Macros: { href: "{}" }
+    },
+    messageStyle: "none"
+  });
+</script>
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Queue(function() {
+      var all = MathJax.Hub.getAllJax(), i;
+      for (i=0; i < all.length; i += 1) {
+          all[i].SourceElement().parentNode.className += ' has-jax';
+      }
+  });
+</script>
+
+
+
+
+<script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
+<script>
+  $(document).ready(() => {
+    const maraidConfig = {
+      theme: "dark",
+      logLevel: 3,
+      flowchart: { curve: "linear" },
+      gantt: { axisFormat: "%m/%d/%Y" },
+      sequence: { actorMargin: 50 },
+    };
+    mermaid.initialize(maraidConfig);
+  });
+</script>
+
+
+
+
+<script src="/lib/fancybox/fancybox.umd.js"></script>
+
+<script>
+  $(document).ready(() => {
+    $('.post-content').each(function(i){
+      $(this).find('img').each(function(){
+        if ($(this).parent().hasClass('fancybox') || $(this).parent().is('a')) return;
+        var alt = this.alt;
+        if (alt) $(this).after('<span class="fancybox-alt">' + alt + '</span>');
+        $(this).wrap('<a class="fancybox-img" href="' + this.src + '" data-fancybox=\"gallery\" data-caption="' + alt + '"></a>')
+      });
+      $(this).find('.fancybox').each(function(){
+        $(this).attr('rel', 'article' + i);
+      });
+    });
+
+    Fancybox.bind('[data-fancybox="gallery"]', {
+        // options
+    })
+  })
+</script>
+
+
+
+</body>
+
+</html>

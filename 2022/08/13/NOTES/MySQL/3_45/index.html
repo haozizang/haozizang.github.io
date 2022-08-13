@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+
+
+
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+<meta http-equiv="X-UA-Compatible" content="ie=edge">
+
+  <meta name="author" content="John Doe">
+
+
+
+
+
+<title>345 | Hexo</title>
+
+
+
+    <link rel="icon" href="/favicon.png">
+
+
+
+<link rel="stylesheet" href="/css/style.css">
+
+
+<link rel="stylesheet" href="/lib/tocbot/tocbot.css">
+
+
+<link rel="stylesheet" href="/lib/fancybox/fancybox.min.css">
+
+
+
+
+
+
+<meta name="generator" content="Hexo 6.2.0"></head>
+<body>
+  <div id="app">
+    <header class="header">
+  <a href="/" class="logo" focusable="false">
+    <img src="/images/logo.svg" alt="Hexo" />
+  </a>
+  <nav class="nav">
+    <div class="spacer"></div>
+    <div class="right">
+      <div class="menu">
+        
+          <a class="item" href="/archives">Posts</a>
+          
+          <a class="item" href="/categories">Categories</a>
+          
+          <a class="item" href="/tags">Tags</a>
+          
+      </div>
+      <div class="links">
+        
+          
+            <a title="Github" target="_blank" rel="noopener" href="https://github.com/xbmlz" class="link-item">
+              <span class="iconify" data-icon="ri:github-line"></span>
+            </a>
+          
+        
+      </div>
+      <a class="toggleDark" id="dark-mode">
+        <span class="iconify" data-icon="ri:sun-line" id="sun-icon" style="display: none"></span>
+        <span class="iconify" data-icon="ri:moon-line" id="moon-icon" style="display: none"></span>
+      </a>
+    </div>
+  </nav>
+</header>
+
+    <main class="container">
+      
+
+  <div class="post-toc">
+  <div class="tocbot-list">
+  </div>
+  <div class="tocbot-list-menu">
+    <a class="tocbot-toc-expand" onclick="expand_toc()">Expand all</a>
+    <a onclick="go_top()">Back to top</a>
+    <a onclick="go_bottom()">Go to bottom</a>
+  </div>
+</div>
+
+
+
+<div class="post">
+  <div class="post-header">
+    <h1 class="post-title">345</h1>
+    <p class="post-meta">2022-08-13 10:01:59</p>
+  </div>
+  <div class="post-content">
+    <article>
+      <h2 id="事务隔离"><a href="#事务隔离" class="headerlink" title="事务隔离"></a>事务隔离</h2><h3 id="事务"><a href="#事务" class="headerlink" title="事务"></a>事务</h3><ul>
+<li>在引擎层实现的(InnoDB)</li>
+</ul>
+<h3 id="事务隔离级别"><a href="#事务隔离级别" class="headerlink" title="事务隔离级别"></a>事务隔离级别</h3><ul>
+<li><p>类型</p>
+<ul>
+<li>读未提交(read uncommitted)<ul>
+<li>一个事务还没提交时，它做的变更就能被别的事务看到。</li>
+</ul>
+</li>
+<li>读提交(read committed)<ul>
+<li>一个事务提交之后，它做的变更才会被其他事务看到。</li>
+</ul>
+</li>
+<li>可重复读(repeatable read)<ul>
+<li>一个事务执行过程中看到的数据，总是跟这个事务在启动时看到的数据是一致的</li>
+</ul>
+</li>
+<li>串行化(serializable)<ul>
+<li>是对于同一行记录，“写”会加“写锁”，“读”会加“读锁”。当出现读写锁冲突的时候，后访问的事务必须等前一个事务执行完成，才能继续执行</li>
+</ul>
+</li>
+</ul>
+</li>
+<li><p>设置</p>
+<ul>
+<li><code>show variables like &#39;transaction_isolation&#39;;</code></li>
+</ul>
+</li>
+<li><p>实现</p>
+<ul>
+<li><code>回滚日志</code> 有同一个数据多个不同时刻版本, 不同类型的隔离级别在不同的 read_view</li>
+<li>回滚日志在不需要时会被删除</li>
+</ul>
+</li>
+<li><p>Q: 为啥不建议使用长事务?</p>
+<ul>
+<li>长事务意味着保留老的事务视图 -&gt; 多回滚记录需要保留; 回滚日志是跟数据字典一起放在 ibdata 文件里的，即使长事务最终提交，回滚段被清理，文件也不会变小。我见过数据只有 20GB，而回滚段有 200GB 的库。最终只好为了清理回滚段，重建整个库。</li>
+<li>建议<ul>
+<li>使用 <code>set autocommit=1</code> 避免造成长事务</li>
+<li>显示方式启动事务</li>
+<li>commit work and chain 来频繁提交+开启下一个事务</li>
+</ul>
+</li>
+<li>定位长事务<ul>
+<li><code>select * from information_schema.inodb_trx where TIME_TO_SEC(timediff(now(), trx_started) &gt; 60</code></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><p>如何避免长事务的影响?</p>
+<ul>
+<li>应用开发端<ul>
+<li>首先确认是否是 <code>set autocommit=0</code>; 若是则改成 1</li>
+<li>不必要的只读事务去掉</li>
+<li>基于业务本身的预估, 通过 SET_MAX_EXECUTION_TIME 控制每个语句的最长执行时间</li>
+</ul>
+</li>
+<li>数据库端<ul>
+<li>监控 information_schema.Innodb_trx 表, 设置长事务阈值, 超过报警&#x2F;kill</li>
+<li>percona   pt-kill</li>
+<li>分析 general_log</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+    </article>
+  </div>
+  <div class="post-footer">
+    <a href="javascript:window.history.back();">
+      cd ..
+    </a>
+    <br>
+    <a href="/">
+      cd /
+    </a>
+  </div>
+  <div class="post-license">
+    <span>
+      <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank" style="color: inherit;">
+        CC BY-NC-SA 4.0
+      </a>
+      2021-PRESENT © John Doe
+    </span>
+    <div></div>
+  </div>
+  <div class="post-comment">
+    <div id="disqusjs"></div>
+  </div>
+</div>
+
+    </main>
+    <footer class="footer">
+  <div class="copyright">
+    <span>Powered by <a href="https://hexo.io" target="_blank">Hexo</a> & <a href="https://github.com/xbmlz/hexo-theme-maple" target="_blank">Maple</a></span>
+  </div>
+</footer>
+
+  </div>
+  <script>
+  (function() {
+    const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches
+    const setting = localStorage.getItem('hexo-color-scheme') || 'auto'
+    if (setting === 'dark' || (prefersDark && setting !== 'light'))
+      document.documentElement.classList.toggle('dark', true)
+  })()
+</script>
+
+
+<script src="/js/jquery-3.4.1.min.js"></script>
+
+
+<script src="/js/index.js"></script>
+
+
+
+<script src="/js/iconify.min.js"></script>
+
+
+<script>
+  window.onload = () => {
+    let media = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)')
+    let isDark = () => {
+      const setting = localStorage.getItem('hexo-color-scheme') || 'auto'
+      if (setting === 'dark' || (media.matches && setting !== 'light')) {
+        return true
+      } else{
+        return false
+      }
+    }
+    // 切换为深色模式
+    let toggleDarkMode = () => {
+      document.documentElement.classList.toggle('dark', true)
+      document.getElementById('moon-icon').style.display = 'block'
+      document.getElementById('sun-icon').style.display = 'none'
+      setDarkMode('dark')
+    }
+    // 切换为浅色模式
+    let toggleLightMode = () => {
+      document.documentElement.classList.toggle('dark', false)
+      document.getElementById('moon-icon').style.display = 'none'
+      document.getElementById('sun-icon').style.display = 'block'
+      setDarkMode('light')
+    }
+    let setDarkMode = (scheme) => {
+      const darkMode = media.matches ? 'dark' : 'light'
+      if (darkMode !== scheme) {
+        localStorage.setItem('hexo-color-scheme', scheme)
+      } else{
+        localStorage.setItem('hexo-color-scheme', 'auto')
+      }
+    }
+    // 切换为自动模式
+    let updateMode = (e) => {
+      const setting = localStorage.getItem('hexo-color-scheme') || 'auto'
+      console.log(setting, e.matches)
+      if (setting === 'auto') {
+        if (e.matches) {
+          toggleDarkMode()
+        } else {
+          toggleLightMode()
+        }
+      }
+    }
+
+    // let media = getMedia()
+    if (typeof media.addEventListener === 'function') {
+      media.addEventListener('change', updateMode)
+    } else if (typeof media.addListener === 'function') {
+      media.addListener(updateMode)
+    }
+
+    if (isDark()) {
+      document.getElementById('moon-icon').style.display = 'block'
+    } else {
+      document.getElementById('sun-icon').style.display = 'block'
+    }
+
+    document.getElementById('moon-icon').addEventListener('click', () => {
+      toggleLightMode()
+    })
+    document.getElementById('sun-icon').addEventListener('click', () => {
+      toggleDarkMode()
+    })
+  }
+</script>
+
+
+
+<script src="/lib/tocbot/tocbot.min.js"></script>
+
+<script>
+  var tocbot_timer;
+  var DEPTH_MAX = 6; // 为 6 时展开所有
+  var tocbot_default_config = {
+    tocSelector: '.tocbot-list',
+    contentSelector: '.post-content',
+    headingSelector: 'h1, h2, h3, h4, h5',
+    orderedList: false,
+    scrollSmooth: true,
+    onClick: extend_click,
+  };
+  function extend_click() {
+    clearTimeout(tocbot_timer);
+    tocbot_timer = setTimeout(function () {
+      tocbot.refresh(obj_merge(tocbot_default_config, {
+        hasInnerContainers: true
+      }));
+    }, 420); // 这个值是由 tocbot 源码里定义的 scrollSmoothDuration 得来的
+  }
+  function expand_toc() {
+    var b = document.querySelector('.tocbot-toc-expand');
+    var expanded = b.getAttribute('data-expanded');
+    expanded ? b.removeAttribute('data-expanded') : b.setAttribute('data-expanded', true);
+    tocbot.refresh(obj_merge(tocbot_default_config, {
+      collapseDepth: expanded ? 1 : DEPTH_MAX
+    }));
+    b.innerText = expanded ? 'Expand all' : 'Collapse all';
+  }
+  function go_top() {
+    window.scrollTo(0, 0);
+  }
+  function go_bottom() {
+    window.scrollTo(0, document.body.scrollHeight);
+  }
+  function obj_merge(target, source) {
+    for (var item in source) {
+      if (source.hasOwnProperty(item)) {
+        target[item] = source[item];
+      }
+    }
+    return target;
+  }
+  $(document).ready(() => {
+    tocbot.init(obj_merge(tocbot_default_config, {
+      collapseDepth: 1
+    }));
+  });
+</script>
+
+
+
+
+
+
+<script async src="https://cdn.jsdelivr.net/npm/mathjax@2/MathJax.js?config=TeX-MML-AM_CHTML"></script>
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+    "HTML-CSS": {
+        preferredFont: "TeX",
+        availableFonts: ["STIX","TeX"],
+        linebreaks: { automatic:true },
+        EqnChunk: (MathJax.Hub.Browser.isMobile ? 10 : 50)
+    },
+    tex2jax: {
+        inlineMath: [ ["$", "$"], ["\\(","\\)"] ],
+        processEscapes: true,
+        ignoreClass: "tex2jax_ignore|dno",
+        skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+    },
+    TeX: {
+        equationNumbers: { autoNumber: "AMS" },
+        noUndefined: { attributes: { mathcolor: "red", mathbackground: "#FFEEEE", mathsize: "90%" } },
+        Macros: { href: "{}" }
+    },
+    messageStyle: "none"
+  });
+</script>
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Queue(function() {
+      var all = MathJax.Hub.getAllJax(), i;
+      for (i=0; i < all.length; i += 1) {
+          all[i].SourceElement().parentNode.className += ' has-jax';
+      }
+  });
+</script>
+
+
+
+
+<script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
+<script>
+  $(document).ready(() => {
+    const maraidConfig = {
+      theme: "dark",
+      logLevel: 3,
+      flowchart: { curve: "linear" },
+      gantt: { axisFormat: "%m/%d/%Y" },
+      sequence: { actorMargin: 50 },
+    };
+    mermaid.initialize(maraidConfig);
+  });
+</script>
+
+
+
+
+<script src="/lib/fancybox/fancybox.umd.js"></script>
+
+<script>
+  $(document).ready(() => {
+    $('.post-content').each(function(i){
+      $(this).find('img').each(function(){
+        if ($(this).parent().hasClass('fancybox') || $(this).parent().is('a')) return;
+        var alt = this.alt;
+        if (alt) $(this).after('<span class="fancybox-alt">' + alt + '</span>');
+        $(this).wrap('<a class="fancybox-img" href="' + this.src + '" data-fancybox=\"gallery\" data-caption="' + alt + '"></a>')
+      });
+      $(this).find('.fancybox').each(function(){
+        $(this).attr('rel', 'article' + i);
+      });
+    });
+
+    Fancybox.bind('[data-fancybox="gallery"]', {
+        // options
+    })
+  })
+</script>
+
+
+
+</body>
+
+</html>
